@@ -40,8 +40,8 @@ Math Snake is a simple browser-based game where players control a snake and navi
 
 ## Acknowledgments
 
-This game is simple, lol.
-This game is licensed under the MIT License.
+- This game is simple, lol.
+- This game is licensed under the MIT License.
 
 ## Author
 

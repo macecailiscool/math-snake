@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Math Snake</title>
+    <style>
+        #game-board {
+            width: 400px;
+            height: 400px;
+            border: 1px solid black;
+            position: relative;
+        }
+        .snake-part {
+            width: 20px;
+            height: 20px;
+            position: absolute;
+            background-color: green;
+        }
+        #food {
+            width: 20px;
+            height: 20px;
+            position: absolute;
+            background-color: red;
+        }
+        .enemy {
+            width: 20px;
+            height: 20px;
+            position: absolute;
+            background-color: blue;
+        }
+        .bullet {
+            width: 5px;
+            height: 5px;
+            position: absolute;
+            background-color: black;
+        }
+        #health-bar {
+            width: 100%;
+            height: 20px;
+            background-color: #ddd;
+            margin-top: 10px;
+        }
+        #health-progress {
+            height: 100%;
+            background-color: green;
+        }
+    </style>
+</head>
+<body>
+    <h1>Math Snake</h1>
+    <div id="game-board"></div>
+    <div id="health-bar">
+        <div id="health-progress"></div>
+    </div>
+
+    <script>
+        // Game board size
+        var boardSize = 20;
+
+        // Initial snake position
+        var snake = [{ x: 10, y: 10 }];
+
+        // Initial direction
+        var direction = 'right';
+
+        // Initial food position
+        var food = getRandomPosition();
+
+        // Enemies
+        var enemies = [
+            { x: 5, y: 5 },
+            { x: 15, y: 15 }
+        ];
+
+        // Bullets
+        var bullets = [];
+
+        // Snake health
+        var snakeHealth = 100;
+
+        // Create game board
+        var gameBoard = document.getElementById('game-board');
+
+        // Health bar
+        var healthBar = document.getElementById('health-progress');
+
+        // Game loop
+        var gameLoop = setInterval(updateGame, 200);
+
+        // Update game state
+        function updateGame() {
+            // Move snake
+            var newHead = getSnakeNextPosition();
+            snake.unshift(newHead);
+
+            // Check if snake collides with food
+            if (newHead.x === food.x && newHead.y === food.y) {
+                // Generate new food position
+                food = getRandomPosition();
+                pauseGame();
+                askMathProblem();
+            } else {
+                // Remove tail if no food was eaten
+                snake.pop();
+            }
+
+            // Check if snake collides with itself
+            if (isSnakeCollision()) {
+                clearInterval(gameLoop);
+                alert('Game Over!');
+                return;
+            }
+
+            // Check if snake collides with enemies
+            if (isSnakeCollidingWithEnemies()) {
+                snakeHealth -= 10;
+                updateHealthBar();
+
+                if (snakeHealth <= 0) {
+                    clearInterval(gameLoop);
+                    alert('Game Over! Your health reached 0.');
+                    return;
+                }
+            }
+
+            // Clear game board
+            gameBoard.innerHTML = '';
+
+            // Draw snake
+            snake.forEach(function(part) {
+                drawSnakePart(part);
+            });
+
+            // Draw food
+            drawFood();
+
+            // Draw enemies
+            enemies.forEach(function(enemy) {
+                drawEnemy(enemy);
+            });
+
+            // Move bullets
+            bullets.forEach(function(bullet, index) {
+                moveBullet(bullet, index);
+            });
+        }
+
+        // Get the next position of the snake based on the current direction
+        function getSnakeNextPosition() {
+            var head = Object.assign({}, snake[0]);
+            switch (direction) {
+                case 'up':
+                    head.y--;
+                    break;
+                case 'down':
+                    head.y++;
+                    break;
+                case 'left':
+                    head.x--;
+                    break;
+                case 'right':
+                    head.x++;
+                    break;
+            }
+            return head;
+        }
+
+        // Check if the snake collides with itself or with the boundaries of the game board
+        function isSnakeCollision() {
+            var head = snake[0];
+            if (
+                head.x < 0 ||
+                head.x >= boardSize ||
+                head.y < 0 ||
+                head.y >= boardSize
+            ) {
+                return true;
+            }
+            for (var i = 1; i < snake.length; i++) {
+                if (snake[i].x === head.x && snake[i].y === head.y) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        // Check if the snake collides with any enemy
+        function isSnakeCollidingWithEnemies() {
+            var head = snake[0];
+            for (var i = 0; i < enemies.length; i++) {
+                if (head.x === enemies[i].x && head.y === enemies[i].y) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        // Draw a snake part on the game board
+        function drawSnakePart(part) {
+            var snakePart = document.createElement('div');
+            snakePart.className = 'snake-part';
+            snakePart.style.left = part.x * 20 + 'px';
+            snakePart.style.top = part.y * 20 + 'px';
+            gameBoard.appendChild(snakePart);
+        }
+
+        // Draw the food on the game board
+        function drawFood() {
+            var foodElement = document.createElement('div');
+            foodElement.id = 'food';
+            foodElement.style.left = food.x * 20 + 'px';
+            foodElement.style.top = food.y * 20 + 'px';
+            gameBoard.appendChild(foodElement);
+        }
+
+        // Draw an enemy on the game board
+        function drawEnemy(enemy) {
+            var enemyElement = document.createElement('div');
+            enemyElement.className = 'enemy';
+            enemyElement.style.left = enemy.x * 20 + 'px';
+            enemyElement.style.top = enemy.y * 20 + 'px';
+            gameBoard.appendChild(enemyElement);
+
+            // Shoot a bullet from the enemy
+            var bullet = { x: enemy.x, y: enemy.y };
+            bullets.push(bullet);
+            drawBullet(bullet);
+        }
+
+        // Draw a bullet on the game board
+        function drawBullet(bullet) {
+            var bulletElement = document.createElement('div');
+            bulletElement.className = 'bullet';
+            bulletElement.style.left = bullet.x * 20 + 'px';
+            bulletElement.style.top = bullet.y * 20 + 'px';
+            gameBoard.appendChild(bulletElement);
+        }
+
+        // Move a bullet
+        function moveBullet(bullet, index) {
+            bullet.y++;
+
+            if (
+                bullet.y >= boardSize
+            ) {
+                // Remove bullet if it goes off the game board
+                bullets.splice(index, 1);
+            } else {
+                // Check if bullet hits the snake
+                if (isBulletCollidingWithSnake(bullet)) {
+                    // Reduce snake's health
+                    snakeHealth -= 10;
+                    updateHealthBar();
+
+                    if (snakeHealth <= 0) {
+                        clearInterval(gameLoop);
+                        alert('Game Over! Your health reached 0.');
+                        return;
+                    }
+
+                    // Remove bullet
+                    bullets.splice(index, 1);
+                } else {
+                    // Move bullet on the game board
+                    var bulletElement = document.getElementsByClassName('bullet')[index];
+                    bulletElement.style.left = bullet.x * 20 + 'px';
+                    bulletElement.style.top = bullet.y * 20 + 'px';
+                }
+            }
+        }
+
+        // Check if a bullet collides with the snake
+        function isBulletCollidingWithSnake(bullet) {
+            for (var i = 0; i < snake.length; i++) {
+                if (snake[i].x === bullet.x && snake[i].y === bullet.y) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        // Generate a random position for the food
+        function getRandomPosition() {
+            return {
+                x: Math.floor(Math.random() * boardSize),
+                y: Math.floor(Math.random() * boardSize)
+            };
+        }
+
+        // Pause the game
+        function pauseGame() {
+            clearInterval(gameLoop);
+        }
+
+        // Resume the game
+        function resumeGame() {
+            gameLoop = setInterval(updateGame, 200);
+        }
+
+        // Ask a random 7th-grade math problem
+        function askMathProblem() {
+            var operators = ['+', '-', '*', '/', 'sqrt'];
+            var operator = operators[Math.floor(Math.random() * operators.length)];
+            var num1 = generateRandomNumber();
+            var num2 = generateRandomNumber();
+            var problem;
+
+            switch (operator) {
+                case '+':
+                    problem = num1 + ' + ' + num2;
+                    break;
+                case '-':
+                    problem = num1 + ' - ' + num2;
+                    break;
+                case '*':
+                    problem = num1 + ' * ' + num2;
+                    break;
+                case '/':
+                    problem = num1 + ' / ' + num2;
+                    break;
+                case 'sqrt':
+                    problem = 'sqrt(' + num1 + ')';
+                    break;
+            }
+
+            var answer = prompt('Solve the following math problem:\n' + problem);
+            if (answer === null) {
+                // If the user cancels, assume they got it wrong
+                closeTab();
+            } else {
+                var isCorrect = checkAnswer(operator, num1, num2, answer);
+                if (isCorrect) {
+                    resumeGame();
+                } else {
+                    closeTab();
+                }
+            }
+        }
+
+        // Generate a random number for the math problem
+        function generateRandomNumber() {
+            // Randomly decide if the number should be positive or negative
+            var isNegative = Math.random() < 0.5;
+
+            // Generate a random number between 1 and 20
+            var number = Math.floor(Math.random() * 20) + 1;
+
+            // If it should be negative, multiply it by -1
+            if (isNegative) {
+                number *= -1;
+            }
+
+            return number;
+        }
+
+        // Check if the answer to the math problem is correct
+        function checkAnswer(operator, num1, num2, answer) {
+            switch (operator) {
+                case '+':
+                    return parseInt(answer) === num1 + num2;
+                case '-':
+                    return parseInt(answer) === num1 - num2;
+                case '*':
+                    return parseInt(answer) === num1 * num2;
+                case '/':
+                    return parseInt(answer) === num1 / num2;
+                case 'sqrt':
+                    return parseFloat(answer) === Math.sqrt(num1);
+            }
+            return false;
+        }
+
+        // Update the health bar
+        function updateHealthBar() {
+            healthBar.style.width = snakeHealth + '%';
+        }
+
+        // Close the tab
+        function closeTab() {
+            window.close();
+        }
+
+        // Handle keydown event to change snake direction
+        document.addEventListener('keydown', function(event) {
+            switch (event.keyCode) {
+                case 37:
+                    if (direction !== 'right') {
+                        direction = 'left';
+                    }
+                    break;
+                case 38:
+                    if (direction !== 'down') {
+                        direction = 'up';
+                    }
+                    break;
+                case 39:
+                    if (direction !== 'left') {
+                        direction = 'right';
+                    }
+                    break;
+                case 40:
+                    if (direction !== 'up') {
+                        direction = 'down';
+                    }
+                    break;
+            }
+        });
+    </script>
+</body>
+</html>

@@ -17,7 +17,7 @@ Math Snake is a simple browser-based game where players control a snake and navi
 - **Food**: The red square represents the food. Move the snake over it to collect it and gain points.
 - **Enemies**: The blue squares are enemies. Colliding with enemies reduces the snake's health.
 - **Bullets**: The black dots are bullets shot by enemies. Getting hit by bullets decreases the snake's health.
-- **Health Bar**: The health bar at the top of the screen represents the snake's health. It decreases when colliding with enemies or getting hit by bullets. When the health reaches 0, the game ends.
+- **Health Bar**: The health bar at the bottom of the screen represents the snake's health. It decreases when colliding with enemies or getting hit by bullets. When the health reaches 0, the game ends.
 
 ## How to Play
 
